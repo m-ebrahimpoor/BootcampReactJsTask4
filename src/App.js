@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import './App.css';
 import CategoryForm from './components/Category';
+import Filter from "./components/Filter";
 import NavBar from './components/NavBar';
 import ProductList from "./components/ProductList";
 import ProductsForm from './components/Products';
@@ -74,6 +76,41 @@ import ProductsForm from './components/Products';
 function App() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [sort, setSort] = useState("latest");
+  const [searchValue, setSearchValue] = useState("");
+
+  useEffect(() => {
+    let result = products;
+    result = filterSearchTitle(result);
+    result = sortDate(result);
+    setFilteredProducts(result);
+
+  }, [products, sort, searchValue]);
+
+  const sortHandler = (e) => {
+    setSort(e.target.value);
+  };
+
+  const searchHandler = (e) => {
+    setSearchValue(e.target.value.trim().toLowerCase());
+  };
+
+  const filterSearchTitle = (array) => {
+    return array.filter((p) => p.title.toLowerCase().includes(searchValue));
+  };
+
+  const sortDate = (array) => {
+    let sorttedProducts = [...array];
+    return sorttedProducts.sort((a, b) => {
+      if (sort === "latest") {
+          return new Date(a.createdAt) > new Date(b.createdAt) ? -1 : 1;
+      } else if (sort === "earliest") {
+          return new Date(a.createdAt) > new Date(b.createdAt) ? -1 : 1;
+      }
+    });
+  };
+
 
   return (
     <div className="">
@@ -82,7 +119,8 @@ function App() {
         <div className="container max-w-screen-sm mx-auto p-4">
           <CategoryForm setCategories={setCategories} />
           <ProductsForm categories={categories} setProducts={setProducts} />
-          <ProductList products={products} />
+          <Filter sort={sort} searchValue={searchValue} onSort={sortHandler} onSearch={searchHandler} />
+          <ProductList products={filteredProducts} categories={categories} setProducts={setProducts} />
         </div>
       </div>
     </div> 
